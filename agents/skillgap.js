@@ -3,28 +3,28 @@
 // ────────────────────────────────────────────────
 
 const COMPANIES = [
-    'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple',
-    'TCS', 'Infosys', 'Wipro', 'Accenture', 'Cognizant',
-    'Flipkart', 'Zomato', 'Paytm', 'Swiggy', 'Ola',
-    'IBM', 'Oracle', 'Capgemini', 'HCL', 'Tech Mahindra',
-    'Other'
+  'Google', 'Microsoft', 'Amazon', 'Meta', 'Apple',
+  'TCS', 'Infosys', 'Wipro', 'Accenture', 'Cognizant',
+  'Flipkart', 'Zomato', 'Paytm', 'Swiggy', 'Ola',
+  'IBM', 'Oracle', 'Capgemini', 'HCL', 'Tech Mahindra',
+  'Other'
 ];
 
 const ROLES = [
-    'Software Developer (SDE)', 'Frontend Developer', 'Backend Developer',
-    'Full Stack Developer', 'Data Analyst', 'Data Scientist',
-    'DevOps Engineer', 'Cloud Engineer', 'Mobile App Developer',
-    'Business Analyst', 'ML/AI Engineer', 'Cybersecurity Analyst'
+  'Software Developer (SDE)', 'Frontend Developer', 'Backend Developer',
+  'Full Stack Developer', 'Data Analyst', 'Data Scientist',
+  'DevOps Engineer', 'Cloud Engineer', 'Mobile App Developer',
+  'Business Analyst', 'ML/AI Engineer', 'Cybersecurity Analyst'
 ];
 
 function renderSkillGapAgent() {
-    document.getElementById('skillgap-root').innerHTML = `
+  document.getElementById('skillgap-root').innerHTML = `
     <div class="agent-panel">
       <div class="agent-header">
         <div class="agent-header-icon">📊</div>
         <div>
           <h1>Skill Gap Analyzer</h1>
-          <p>Enter your target company & role → get a personalized skill gap report and 3-month learning roadmap.</p>
+          <p>Enter your target company & role, and optionally upload your resume → get a personalized skill gap report and 3-month learning roadmap.</p>
         </div>
       </div>
 
@@ -50,11 +50,21 @@ function renderSkillGapAgent() {
         <input type="text" id="sg-skills" placeholder="e.g. Python, HTML, CSS, SQL, basic C++" style="margin-bottom:16px"/>
 
         <label>Academic Year / Background</label>
-        <select id="sg-year">
+        <select id="sg-year" style="margin-bottom:16px">
           <option value="1st year engineering student">1st Year Engineering</option>
           <option value="2nd year engineering student">2nd Year Engineering</option>
           <option value="fresh graduate">Fresh Graduate</option>
         </select>
+
+        <label>Upload Resume (Optional)</label>
+        <div id="sg-upload-zone" class="upload-zone" onclick="document.getElementById('sg-resume-file').click()">
+          <input type="file" id="sg-resume-file" accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="handleSGResumeUpload(event)" />
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Click to upload or drag & drop</div>
+          <div class="upload-sub">Supports PDF, DOCX, TXT files</div>
+        </div>
+        <div id="sg-upload-status" style="display:none" class="upload-status"></div>
+        <textarea id="sg-resume-text" style="display:none"></textarea>
 
         <div class="btn-row">
           <button class="btn-primary" id="sg-analyze-btn" onclick="analyzeSkillGap()">📊 Analyze My Gap</button>
@@ -72,29 +82,91 @@ function renderSkillGapAgent() {
       <div id="sg-results" style="display:none"></div>
     </div>
   `;
+
+  // Set up drag and drop
+  const zone = document.getElementById('sg-upload-zone');
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processSGUploadedFile(file);
+  });
+}
+
+async function handleSGResumeUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  await processSGUploadedFile(file);
+}
+
+async function processSGUploadedFile(file) {
+  const statusEl = document.getElementById('sg-upload-status');
+  const textarea = document.getElementById('sg-resume-text');
+  const zoneEl = document.getElementById('sg-upload-zone');
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  statusEl.style.display = 'flex';
+  statusEl.innerHTML = `<span class="upload-spinner"></span> Reading <strong>${file.name}</strong>...`;
+
+  try {
+    let text = '';
+    if (ext === 'txt') {
+      text = await file.text();
+    } else if (ext === 'pdf') {
+      text = await extractTextFromPDF(file); // reused from resume.js globally
+    } else if (ext === 'docx' || ext === 'doc') {
+      text = await extractTextFromDOCX(file); // reused from resume.js globally
+    } else {
+      throw new Error('Unsupported file type. Please use PDF, DOCX, or TXT.');
+    }
+
+    if (!text || text.trim().length < 20) {
+      throw new Error('Could not extract enough text from the file.');
+    }
+
+    textarea.value = text.trim();
+    statusEl.innerHTML = `<span style="color:var(--success)">✅</span> Loaded <strong>${file.name}</strong> — ${text.trim().split(/\s+/).length} words extracted`;
+    zoneEl.classList.add('uploaded');
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:var(--danger)">❌</span> ${err.message}`;
+  }
 }
 
 async function analyzeSkillGap() {
-    const company = document.getElementById('sg-company').value;
-    const role = document.getElementById('sg-role').value;
-    const skills = document.getElementById('sg-skills').value.trim();
-    const year = document.getElementById('sg-year').value;
+  const company = document.getElementById('sg-company').value;
+  const role = document.getElementById('sg-role').value;
+  const skills = document.getElementById('sg-skills').value.trim();
+  const year = document.getElementById('sg-year').value;
+  const resumeText = document.getElementById('sg-resume-text').value.trim();
 
-    if (!company || !role) {
-        alert('Please select both a company and a role.');
-        return;
-    }
+  if (!company || !role) {
+    alert('Please select both a company and a role.');
+    return;
+  }
 
-    const btn = document.getElementById('sg-analyze-btn');
-    btn.disabled = true;
-    document.getElementById('sg-loading').style.display = 'block';
-    document.getElementById('sg-results').style.display = 'none';
+  const btn = document.getElementById('sg-analyze-btn');
+  btn.disabled = true;
+  document.getElementById('sg-loading').style.display = 'block';
+  document.getElementById('sg-results').style.display = 'none';
 
-    const systemInstruction = `You are an expert career coach and placement consultant.
-The user is a ${year} targeting a "${role}" position at "${company}".
-Their current skills: ${skills || 'none specified'}.
+  let promptParts = [
+    `Target Company: ${company}`,
+    `Target Role: ${role}`,
+    `Current Academic Status: ${year}`
+  ];
+  if (skills) promptParts.push(`Stated Current Skills: ${skills}`);
+  if (resumeText) promptParts.push(`\n--- Candidate's Resume ---\n${resumeText}\n--------------------------`);
 
-Respond ONLY in this JSON format:
+  const userPrompt = promptParts.join('\n');
+
+  const systemInstruction = `You are an expert career coach and placement consultant.
+The user is providing their target company, role, background, and optionally a resume.
+
+Your task is to analyze their current profile against the requirements for their target role at their target company.
+
+Respond ONLY in this exact JSON format:
 {
   "requiredSkills": [
     { "skill": "<name>", "priority": "High|Medium|Low", "has": true|false }
@@ -112,36 +184,36 @@ Respond ONLY in this JSON format:
   "readinessScore": <0-100>
 }
 
-Be specific, realistic for a beginner, and use only free learning resources.`;
+Be specific, realistic for a beginner, map the feedback to the provided resume if one was given, and recommend free resources.`;
 
-    try {
-        const raw = await callGemini(`Analyze skill gap for: Company=${company}, Role=${role}, Current Skills=${skills}, Year=${year}`, systemInstruction);
-        const data = extractJSON(raw);
-        renderSkillGapResults(data, company, role);
-    } catch (e) {
-        document.getElementById('sg-results').innerHTML = `<div class="result-card"><p style="color:var(--danger)">Error: ${e.message}</p></div>`;
-        document.getElementById('sg-results').style.display = 'block';
-    } finally {
-        btn.disabled = false;
-        document.getElementById('sg-loading').style.display = 'none';
-    }
+  try {
+    const raw = await callGemini(userPrompt, systemInstruction);
+    const data = extractJSON(raw);
+    renderSkillGapResults(data, company, role);
+  } catch (e) {
+    document.getElementById('sg-results').innerHTML = `<div class="result-card"><p style="color:var(--danger)">Error: ${e.message}</p></div>`;
+    document.getElementById('sg-results').style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    document.getElementById('sg-loading').style.display = 'none';
+  }
 }
 
 function renderSkillGapResults(data, company, role) {
-    const score = data.readinessScore || 0;
-    const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
+  const score = data.readinessScore || 0;
+  const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#ef4444';
 
-    const skillRows = (data.requiredSkills || []).map(s => {
-        const pColor = s.priority === 'High' ? 'var(--danger)' : s.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
-        return `
+  const skillRows = (data.requiredSkills || []).map(s => {
+    const pColor = s.priority === 'High' ? 'var(--danger)' : s.priority === 'Medium' ? 'var(--warning)' : 'var(--success)';
+    return `
       <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--glass-border)">
         <span style="font-size:1rem">${s.has ? '✅' : '❌'}</span>
         <span style="flex:1;font-size:0.87rem;color:${s.has ? 'var(--text-primary)' : 'var(--text-secondary)'}">${s.skill}</span>
         <span style="font-size:0.72rem;font-weight:600;color:${pColor};background:${pColor}18;border:1px solid ${pColor}33;padding:3px 10px;border-radius:99px">${s.priority}</span>
       </div>`;
-    }).join('');
+  }).join('');
 
-    const roadmapRows = (data.roadmap || []).map(r => `
+  const roadmapRows = (data.roadmap || []).map(r => `
     <div class="roadmap-week">
       <div class="week-badge">${r.week.replace('Week ', 'W')}</div>
       <div class="week-content">
@@ -150,7 +222,7 @@ function renderSkillGapResults(data, company, role) {
       </div>
     </div>`).join('');
 
-    const html = `
+  const html = `
     <div class="result-card">
       <h3>🎯 Readiness for ${role} at ${company}</h3>
       <div style="display:flex;align-items:center;gap:20px;margin:16px 0;flex-wrap:wrap">
@@ -183,14 +255,18 @@ function renderSkillGapResults(data, company, role) {
     </div>
   `;
 
-    const el = document.getElementById('sg-results');
-    el.innerHTML = html;
-    el.style.display = 'block';
+  const el = document.getElementById('sg-results');
+  el.innerHTML = html;
+  el.style.display = 'block';
 }
 
 function clearSkillGap() {
-    document.getElementById('sg-company').value = '';
-    document.getElementById('sg-role').value = '';
-    document.getElementById('sg-skills').value = '';
-    document.getElementById('sg-results').style.display = 'none';
+  document.getElementById('sg-company').value = '';
+  document.getElementById('sg-role').value = '';
+  document.getElementById('sg-skills').value = '';
+  document.getElementById('sg-resume-file').value = '';
+  document.getElementById('sg-resume-text').value = '';
+  document.getElementById('sg-upload-zone').classList.remove('uploaded');
+  document.getElementById('sg-upload-status').style.display = 'none';
+  document.getElementById('sg-results').style.display = 'none';
 }
