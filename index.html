@@ -19,22 +19,7 @@
 
 <body>
 
-  <!-- ─── API Key Modal ───────────────────────────────────────── -->
-  <div id="api-modal" class="modal-overlay">
-    <div class="modal-box">
-      <div class="modal-icon">🤖</div>
-      <h2>Welcome to PlacementPrep AI</h2>
-      <p>Enter your <strong>Google Gemini API key</strong> to unlock your personal AI placement coach. Your key is
-        stored only in your browser.</p>
-      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="modal-link">Get a free key at
-        aistudio.google.com →</a>
-      <div class="modal-input-row">
-        <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" />
-        <button id="api-key-submit" onclick="saveApiKey()">Start</button>
-      </div>
-      <p id="api-key-error" class="error-text" style="display:none">Please enter a valid API key.</p>
-    </div>
-  </div>
+
 
   <!-- ─── App Shell ──────────────────────────────────────────── -->
   <div id="app" class="app-shell hidden">
@@ -76,9 +61,7 @@
         </button>
       </nav>
 
-      <div class="sidebar-footer">
-        <button class="key-btn" onclick="resetApiKey()" title="Change API Key">🔑 Change API Key</button>
-      </div>
+
     </aside>
 
     <!-- Mobile top bar -->

@@ -7,58 +7,48 @@
 // ── State ─────────────────────────────────────────
 let currentView = 'home';
 let geminiApiKey = typeof ENV !== 'undefined' ? ENV.GEMINI_API_KEY : '';
-
+//AIzaSyARALMwQMNOOcTyLcuN19DE1mxYyhSDG7Y
 // ── Init ──────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    // If API key is loaded from env.js, skip modal
-    if (geminiApiKey) {
-        document.getElementById('api-modal').style.display = 'none';
-        launchApp();
-    } else {
-        // Fallback to localStorage + Modal for users cloning the repo
-        const stored = localStorage.getItem('pp_gemini_key');
-        if (stored) {
-            geminiApiKey = stored;
-            launchApp();
-        } else {
-            document.getElementById('api-modal').style.display = 'flex';
-        }
-    }
-});
-
-// ── API Key ───────────────────────────────────────
-function saveApiKey() {
-    const val = document.getElementById('api-key-input').value.trim();
-    if (!val || val.length < 20) {
-        document.getElementById('api-key-error').style.display = 'block';
+    // API key must be strictly loaded from env.js now.
+    if (!geminiApiKey) {
+        alert('CRITICAL ERROR: No Gemini API Key found.\\n\\nPlease add your key to env.js to use this application.');
         return;
     }
-    geminiApiKey = val;
-    localStorage.setItem('pp_gemini_key', val);
-    document.getElementById('api-modal').style.display = 'none';
     launchApp();
-}
-
-function resetApiKey() {
-    localStorage.removeItem('pp_gemini_key');
-    geminiApiKey = '';
-    document.getElementById('api-key-input').value = '';
-    document.getElementById('api-key-error').style.display = 'none';
-    document.getElementById('api-modal').style.display = 'flex';
-}
-
-// Allow pressing Enter in the API key input
-document.addEventListener('DOMContentLoaded', () => {
-    const input = document.getElementById('api-key-input');
-    if (input) {
-        input.addEventListener('keydown', (e) => { if (e.key === 'Enter') saveApiKey(); });
-    }
 });
 
-// ── App Launch ────────────────────────────────────
+
 function launchApp() {
     document.getElementById('app').classList.remove('hidden');
     navigateTo('home');
+    initTiltEffect();
+}
+
+// ── 3D Tilt Effect ────────────────────────────────
+function initTiltEffect() {
+    const cards = document.querySelectorAll('.agent-card');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            // Limit tilt logic to small angles (e.g. max 8 degrees)
+            const rotateX = ((y - centerY) / centerY) * -8;
+            const rotateY = ((x - centerX) / centerX) * 8;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            // Reset to default on leave smoothly
+            card.style.transform = `perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)`;
+        });
+    });
 }
 
 // ── Navigation (Orchestrator routing) ─────────────

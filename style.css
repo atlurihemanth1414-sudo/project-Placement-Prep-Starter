@@ -104,6 +104,7 @@ body::after {
   filter: blur(100px);
   pointer-events: none;
   z-index: 0;
+  animation: floatOrb 15s ease-in-out infinite alternate;
 }
 
 body::before {
@@ -112,6 +113,7 @@ body::before {
   background: radial-gradient(circle, rgba(124, 58, 237, 0.18), transparent 70%);
   top: -150px;
   left: -150px;
+  animation-delay: 0s;
 }
 
 body::after {
@@ -120,6 +122,8 @@ body::after {
   background: radial-gradient(circle, rgba(6, 182, 212, 0.12), transparent 70%);
   bottom: -100px;
   right: -100px;
+  animation-delay: -5s;
+  animation-duration: 20s;
 }
 
 /* ─────────────────────────────────────────────────────
@@ -292,6 +296,7 @@ body::after {
   text-align: left;
   transition: all var(--transition);
   position: relative;
+  overflow: hidden;
 }
 
 .nav-item:hover {
@@ -304,11 +309,17 @@ body::after {
   background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(79, 70, 229, 0.12));
   color: var(--text-primary);
   border-color: rgba(124, 58, 237, 0.3);
+  box-shadow: inset 3px 0 0 var(--accent-1);
 }
 
 .nav-icon {
   font-size: 1rem;
   flex-shrink: 0;
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.nav-item:hover .nav-icon {
+  transform: scale(1.2) rotate(-5deg);
 }
 
 .agent-badge {
@@ -418,6 +429,7 @@ body::after {
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
   margin-bottom: 32px;
+  perspective: 1000px;
 }
 
 .agent-card {
@@ -426,9 +438,26 @@ body::after {
   border-radius: var(--radius);
   padding: 28px 24px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: border-color 0.3s, box-shadow 0.3s, transform 0.1s ease-out;
   position: relative;
-  overflow: hidden;
+  transform-style: preserve-3d;
+  animation: fadeInUp 0.5s ease both;
+}
+
+.agent-card:nth-child(1) {
+  animation-delay: 0.1s;
+}
+
+.agent-card:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.agent-card:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+.agent-card:nth-child(4) {
+  animation-delay: 0.4s;
 }
 
 .agent-card::before {
@@ -438,12 +467,14 @@ body::after {
   background: var(--grad-card);
   opacity: 0;
   transition: opacity 0.3s ease;
+  border-radius: var(--radius);
+  transform: translateZ(-1px);
 }
 
 .agent-card:hover {
   border-color: var(--glass-border-hover);
-  transform: translateY(-4px);
-  box-shadow: 0 20px 50px rgba(124, 58, 237, 0.15);
+  box-shadow: 0 20px 50px rgba(124, 58, 237, 0.2);
+  z-index: 10;
 }
 
 .agent-card:hover::before {
@@ -453,6 +484,13 @@ body::after {
 .agent-card>* {
   position: relative;
   z-index: 1;
+  transform: translateZ(20px);
+  transition: transform 0.3s ease;
+  pointer-events: none;
+}
+
+.agent-card:hover>* {
+  transform: translateZ(40px);
 }
 
 .agent-card-icon {
@@ -617,12 +655,14 @@ body::after {
   font-weight: 600;
   transition: opacity var(--transition), transform var(--transition), box-shadow var(--transition);
   box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  animation: glowPulse 2s infinite alternate;
 }
 
 .btn-primary:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
-  box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+  opacity: 0.95;
+  transform: translateY(-2px);
+  animation: none;
+  box-shadow: 0 12px 30px rgba(124, 58, 237, 0.5);
 }
 
 .btn-primary:disabled {
@@ -1173,6 +1213,30 @@ body::after {
   40% {
     transform: scale(1);
     opacity: 1;
+  }
+}
+
+@keyframes floatOrb {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  50% {
+    transform: translate(30px, 40px) scale(1.05);
+  }
+
+  100% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+}
+
+@keyframes glowPulse {
+  0% {
+    box-shadow: 0 4px 16px rgba(124, 58, 237, 0.3);
+  }
+
+  100% {
+    box-shadow: 0 8px 32px rgba(124, 58, 237, 0.6);
   }
 }
 
