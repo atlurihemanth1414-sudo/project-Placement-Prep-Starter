@@ -54,6 +54,12 @@
           <span>DSA Quiz</span>
           <span class="agent-badge">Agent</span>
         </button>
+        <button class="nav-item" id="nav-jobs" onclick="navigateTo('jobs')">
+          <span class="nav-icon">💼</span>
+          <span>Active Jobs</span>
+          <span class="agent-badge"
+            style="background: rgba(16, 185, 129, 0.2); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.3);">New</span>
+        </button>
         <button class="nav-item" id="nav-skillgap" onclick="navigateTo('skillgap')">
           <span class="nav-icon">📊</span>
           <span>Skill Gap Analyzer</span>
@@ -98,6 +104,14 @@
             <p>Topic-wise data structures & algorithms MCQs with explanations and live score tracking.</p>
             <div class="card-tag">Adaptive Quiz</div>
           </div>
+          <div class="agent-card" onclick="navigateTo('jobs')">
+            <div class="agent-card-icon">💼</div>
+            <h3>Active Jobs</h3>
+            <p>Browse and apply for the latest software engineering job postings and internships.</p>
+            <div class="card-tag"
+              style="background: rgba(16, 185, 129, 0.1); color: #6ee7b7; border-color: rgba(16, 185, 129, 0.25);">
+              Opportunities</div>
+          </div>
           <div class="agent-card" onclick="navigateTo('skillgap')">
             <div class="agent-card-icon">📊</div>
             <h3>Skill Gap Analyzer</h3>
@@ -130,6 +144,11 @@
         <div id="dsa-root"></div>
       </section>
 
+      <!-- ── Active Jobs ── -->
+      <section id="view-jobs" class="view">
+        <div id="jobs-root"></div>
+      </section>
+
       <!-- ── Skill Gap Analyzer ── -->
       <section id="view-skillgap" class="view">
         <div id="skillgap-root"></div>
@@ -143,6 +162,7 @@
   <script src="agents/interview.js"></script>
   <script src="agents/dsa.js"></script>
   <script src="agents/skillgap.js"></script>
+  <script src="agents/jobs.js"></script>
   <script src="env.js"></script>
   <script src="app.js"></script>
 </body>

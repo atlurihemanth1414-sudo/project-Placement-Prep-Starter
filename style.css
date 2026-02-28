@@ -1381,3 +1381,91 @@ body::after {
     grid-template-columns: 1fr;
   }
 }
+
+/* ─────────────────────────────────────────────────────
+   JOBS DASHBOARD
+───────────────────────────────────────────────────── */
+.jobs-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.job-card {
+  padding: 24px;
+  cursor: default;
+  /* Keep default cursor or pointer depending on tilt */
+}
+
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 16px;
+}
+
+.job-title {
+  font-size: 1.15rem !important;
+  color: var(--text-primary);
+  margin-bottom: 6px !important;
+}
+
+.job-company {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.job-tag {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: rgba(124, 58, 237, 0.15);
+  color: var(--accent-1);
+  border: 1px solid rgba(124, 58, 237, 0.3);
+}
+
+.job-tag.internship {
+  background: rgba(6, 182, 212, 0.15);
+  color: var(--accent-3);
+  border-color: rgba(6, 182, 212, 0.3);
+}
+
+.job-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.skill-tag {
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.job-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 16px;
+  border-top: 1px dashed var(--glass-border);
+  position: relative;
+  z-index: 10;
+}
+
+.job-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.btn-apply {
+  padding: 8px 20px;
+  font-size: 0.85rem;
+  animation: glowPulse 2s infinite alternate;
+}

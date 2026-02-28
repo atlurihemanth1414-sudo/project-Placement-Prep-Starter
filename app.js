@@ -74,6 +74,7 @@ function navigateTo(viewName) {
         interview: renderInterviewAgent,
         dsa: renderDSAAgent,
         skillgap: renderSkillGapAgent,
+        jobs: renderJobsAgent,
     };
     if (renders[viewName]) {
         const root = document.getElementById(`${viewName}-root`);
