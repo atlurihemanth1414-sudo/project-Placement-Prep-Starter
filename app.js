@@ -6,13 +6,24 @@
 
 // ── State ─────────────────────────────────────────
 let currentView = 'home';
-let geminiApiKey = 'AIzaSyASPJBNemAcrUqa1RIMUHtSxRw0gA9vqOE';
+let geminiApiKey = typeof ENV !== 'undefined' ? ENV.GEMINI_API_KEY : '';
 
 // ── Init ──────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
-    // API key is hardcoded — skip the modal entirely
-    document.getElementById('api-modal').style.display = 'none';
-    launchApp();
+    // If API key is loaded from env.js, skip modal
+    if (geminiApiKey) {
+        document.getElementById('api-modal').style.display = 'none';
+        launchApp();
+    } else {
+        // Fallback to localStorage + Modal for users cloning the repo
+        const stored = localStorage.getItem('pp_gemini_key');
+        if (stored) {
+            geminiApiKey = stored;
+            launchApp();
+        } else {
+            document.getElementById('api-modal').style.display = 'flex';
+        }
+    }
 });
 
 // ── API Key ───────────────────────────────────────
