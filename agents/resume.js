@@ -1,5 +1,5 @@
 // ────────────────────────────────────────────────
-//  Resume Review Agent
+//  Resume Review Agent (with file upload)
 // ────────────────────────────────────────────────
 
 function renderResumeAgent() {
@@ -9,13 +9,26 @@ function renderResumeAgent() {
         <div class="agent-header-icon">📄</div>
         <div>
           <h1>Resume Review Agent</h1>
-          <p>Paste your resume → get an ATS score, recruiter feedback, and improvement tips.</p>
+          <p>Upload your resume or paste text → get an ATS score, recruiter feedback, and improvement tips.</p>
         </div>
       </div>
 
       <div class="input-card">
-        <label>Your Resume Text</label>
-        <textarea id="resume-text" rows="12" placeholder="Paste your full resume here — including education, skills, projects, internships..."></textarea>
+        <!-- Upload Zone -->
+        <label>Upload Resume</label>
+        <div id="upload-zone" class="upload-zone" onclick="document.getElementById('resume-file').click()">
+          <input type="file" id="resume-file" accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="handleResumeUpload(event)" />
+          <div class="upload-icon">📁</div>
+          <div class="upload-text">Click to upload or drag & drop</div>
+          <div class="upload-sub">Supports PDF, DOCX, TXT files</div>
+        </div>
+        <div id="upload-status" style="display:none" class="upload-status"></div>
+
+        <div class="upload-divider"><span>OR</span></div>
+
+        <label>Paste Resume Text</label>
+        <textarea id="resume-text" rows="10" placeholder="Paste your full resume here — including education, skills, projects, internships..."></textarea>
+
         <div class="btn-row">
           <button class="btn-primary" id="resume-analyze-btn" onclick="analyzeResume()">🔍 Analyze Resume</button>
           <button class="btn-secondary" onclick="clearResume()">Clear</button>
@@ -32,12 +45,83 @@ function renderResumeAgent() {
       <div id="resume-results" style="display:none"></div>
     </div>
   `;
+
+  // Set up drag and drop
+  const zone = document.getElementById('upload-zone');
+  zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (file) processUploadedFile(file);
+  });
+}
+
+async function handleResumeUpload(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  await processUploadedFile(file);
+}
+
+async function processUploadedFile(file) {
+  const statusEl = document.getElementById('upload-status');
+  const textarea = document.getElementById('resume-text');
+  const zoneEl = document.getElementById('upload-zone');
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  statusEl.style.display = 'flex';
+  statusEl.innerHTML = `<span class="upload-spinner"></span> Reading <strong>${file.name}</strong>...`;
+
+  try {
+    let text = '';
+
+    if (ext === 'txt') {
+      text = await file.text();
+    } else if (ext === 'pdf') {
+      text = await extractTextFromPDF(file);
+    } else if (ext === 'docx' || ext === 'doc') {
+      text = await extractTextFromDOCX(file);
+    } else {
+      throw new Error('Unsupported file type. Please use PDF, DOCX, or TXT.');
+    }
+
+    if (!text || text.trim().length < 20) {
+      throw new Error('Could not extract enough text from the file. Try pasting manually.');
+    }
+
+    textarea.value = text.trim();
+    statusEl.innerHTML = `<span style="color:var(--success)">✅</span> Loaded <strong>${file.name}</strong> — ${text.trim().split(/\s+/).length} words extracted`;
+    zoneEl.classList.add('uploaded');
+  } catch (err) {
+    statusEl.innerHTML = `<span style="color:var(--danger)">❌</span> ${err.message}`;
+  }
+}
+
+async function extractTextFromPDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let fullText = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    const pageText = content.items.map(item => item.str).join(' ');
+    fullText += pageText + '\n';
+  }
+  return fullText;
+}
+
+async function extractTextFromDOCX(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
 }
 
 async function analyzeResume() {
   const text = document.getElementById('resume-text').value.trim();
   if (!text || text.length < 50) {
-    alert('Please paste your resume text (at least a few lines).');
+    alert('Please upload a file or paste your resume text (at least a few lines).');
     return;
   }
 
@@ -109,13 +193,13 @@ function renderResumeResults(data) {
       <div class="result-card">
         <h3>✅ Strengths</h3>
         <ul class="md-content" style="padding-left:18px">
-          ${(data.strengths||[]).map(s=>`<li>${s}</li>`).join('')}
+          ${(data.strengths || []).map(s => `<li>${s}</li>`).join('')}
         </ul>
       </div>
       <div class="result-card">
         <h3>⚠️ Weaknesses</h3>
         <ul class="md-content" style="padding-left:18px">
-          ${(data.weaknesses||[]).map(w=>`<li>${w}</li>`).join('')}
+          ${(data.weaknesses || []).map(w => `<li>${w}</li>`).join('')}
         </ul>
       </div>
     </div>
@@ -123,9 +207,9 @@ function renderResumeResults(data) {
     <div class="result-card">
       <h3>💡 Improvement Suggestions</h3>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:4px">
-        ${(data.suggestions||[]).map((s,i)=>`
+        ${(data.suggestions || []).map((s, i) => `
           <div style="display:flex;gap:12px;align-items:flex-start;font-size:0.88rem;color:var(--text-secondary)">
-            <span style="flex-shrink:0;width:24px;height:24px;background:rgba(124,58,237,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#a78bfa">${i+1}</span>
+            <span style="flex-shrink:0;width:24px;height:24px;background:rgba(124,58,237,0.2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:700;color:#a78bfa">${i + 1}</span>
             <span>${s}</span>
           </div>`).join('')}
       </div>
@@ -146,4 +230,7 @@ function renderResumeResults(data) {
 function clearResume() {
   document.getElementById('resume-text').value = '';
   document.getElementById('resume-results').style.display = 'none';
+  document.getElementById('upload-status').style.display = 'none';
+  document.getElementById('upload-zone').classList.remove('uploaded');
+  document.getElementById('resume-file').value = '';
 }

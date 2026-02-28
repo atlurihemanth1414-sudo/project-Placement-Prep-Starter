@@ -1,156 +1,166 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PlacementPrep AI — 1st Year Edition</title>
-  <meta name="description" content="Your AI-powered multi-agent placement preparation coach for 1st year engineering students. Resume review, mock interviews, DSA quizzes, and skill gap analysis." />
+  <meta name="description"
+    content="Your AI-powered multi-agent placement preparation coach for 1st year engineering students. Resume review, mock interviews, DSA quizzes, and skill gap analysis." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 </head>
+
 <body>
 
-<!-- ─── API Key Modal ───────────────────────────────────────── -->
-<div id="api-modal" class="modal-overlay">
-  <div class="modal-box">
-    <div class="modal-icon">🤖</div>
-    <h2>Welcome to PlacementPrep AI</h2>
-    <p>Enter your <strong>Google Gemini API key</strong> to unlock your personal AI placement coach. Your key is stored only in your browser.</p>
-    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="modal-link">Get a free key at aistudio.google.com →</a>
-    <div class="modal-input-row">
-      <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" />
-      <button id="api-key-submit" onclick="saveApiKey()">Start</button>
-    </div>
-    <p id="api-key-error" class="error-text" style="display:none">Please enter a valid API key.</p>
-  </div>
-</div>
-
-<!-- ─── App Shell ──────────────────────────────────────────── -->
-<div id="app" class="app-shell hidden">
-
-  <!-- Sidebar -->
-  <aside class="sidebar">
-    <div class="sidebar-brand">
-      <span class="brand-icon">🚀</span>
-      <div>
-        <div class="brand-title">PlacementPrep AI</div>
-        <div class="brand-sub">1st Year Edition</div>
+  <!-- ─── API Key Modal ───────────────────────────────────────── -->
+  <div id="api-modal" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-icon">🤖</div>
+      <h2>Welcome to PlacementPrep AI</h2>
+      <p>Enter your <strong>Google Gemini API key</strong> to unlock your personal AI placement coach. Your key is
+        stored only in your browser.</p>
+      <a href="https://aistudio.google.com/app/apikey" target="_blank" class="modal-link">Get a free key at
+        aistudio.google.com →</a>
+      <div class="modal-input-row">
+        <input type="password" id="api-key-input" placeholder="AIza..." autocomplete="off" />
+        <button id="api-key-submit" onclick="saveApiKey()">Start</button>
       </div>
+      <p id="api-key-error" class="error-text" style="display:none">Please enter a valid API key.</p>
     </div>
-
-    <nav class="sidebar-nav">
-      <button class="nav-item active" id="nav-home" onclick="navigateTo('home')">
-        <span class="nav-icon">🏠</span>
-        <span>Dashboard</span>
-      </button>
-      <button class="nav-item" id="nav-resume" onclick="navigateTo('resume')">
-        <span class="nav-icon">📄</span>
-        <span>Resume Review</span>
-        <span class="agent-badge">Agent</span>
-      </button>
-      <button class="nav-item" id="nav-interview" onclick="navigateTo('interview')">
-        <span class="nav-icon">🎤</span>
-        <span>Mock Interview</span>
-        <span class="agent-badge">Agent</span>
-      </button>
-      <button class="nav-item" id="nav-dsa" onclick="navigateTo('dsa')">
-        <span class="nav-icon">🧩</span>
-        <span>DSA Quiz</span>
-        <span class="agent-badge">Agent</span>
-      </button>
-      <button class="nav-item" id="nav-skillgap" onclick="navigateTo('skillgap')">
-        <span class="nav-icon">📊</span>
-        <span>Skill Gap Analyzer</span>
-        <span class="agent-badge">Agent</span>
-      </button>
-    </nav>
-
-    <div class="sidebar-footer">
-      <button class="key-btn" onclick="resetApiKey()" title="Change API Key">🔑 Change API Key</button>
-    </div>
-  </aside>
-
-  <!-- Mobile top bar -->
-  <div class="mobile-topbar">
-    <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()">☰</button>
-    <span class="brand-title">PlacementPrep AI</span>
   </div>
 
-  <!-- Main Content -->
-  <main class="main-content">
+  <!-- ─── App Shell ──────────────────────────────────────────── -->
+  <div id="app" class="app-shell hidden">
 
-    <!-- ── Home / Dashboard ── -->
-    <section id="view-home" class="view active">
-      <div class="page-header">
-        <h1>Welcome, Future Engineer! 👋</h1>
-        <p class="page-sub">Your AI-powered placement coaching suite. Choose an agent below to get started.</p>
-      </div>
-      <div class="agent-grid">
-        <div class="agent-card" onclick="navigateTo('resume')">
-          <div class="agent-card-icon">📄</div>
-          <h3>Resume Review Agent</h3>
-          <p>Get ATS score, recruiter feedback, and actionable improvement tips on your resume.</p>
-          <div class="card-tag">AI Analysis</div>
-        </div>
-        <div class="agent-card" onclick="navigateTo('interview')">
-          <div class="agent-card-icon">🎤</div>
-          <h3>Mock Interview Agent</h3>
-          <p>Practice HR & technical interview questions with real-time AI evaluation and end-session report.</p>
-          <div class="card-tag">Conversational AI</div>
-        </div>
-        <div class="agent-card" onclick="navigateTo('dsa')">
-          <div class="agent-card-icon">🧩</div>
-          <h3>DSA Quiz Agent</h3>
-          <p>Topic-wise data structures & algorithms MCQs with explanations and live score tracking.</p>
-          <div class="card-tag">Adaptive Quiz</div>
-        </div>
-        <div class="agent-card" onclick="navigateTo('skillgap')">
-          <div class="agent-card-icon">📊</div>
-          <h3>Skill Gap Analyzer</h3>
-          <p>Enter your target company & role to get a personalized skill gap report and 3-month roadmap.</p>
-          <div class="card-tag">Roadmap Gen</div>
-        </div>
-      </div>
-
-      <div class="info-banner">
-        <div class="info-icon">ℹ️</div>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <span class="brand-icon">🚀</span>
         <div>
-          <strong>How it works:</strong> Each card opens a specialist AI agent powered by Google Gemini. 
-          All agents share context via an <strong>Orchestrator Agent</strong> that routes your requests intelligently.
+          <div class="brand-title">PlacementPrep AI</div>
+          <div class="brand-sub">1st Year Edition</div>
         </div>
       </div>
-    </section>
 
-    <!-- ── Resume Review ── -->
-    <section id="view-resume" class="view">
-      <div id="resume-root"></div>
-    </section>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" id="nav-home" onclick="navigateTo('home')">
+          <span class="nav-icon">🏠</span>
+          <span>Dashboard</span>
+        </button>
+        <button class="nav-item" id="nav-resume" onclick="navigateTo('resume')">
+          <span class="nav-icon">📄</span>
+          <span>Resume Review</span>
+          <span class="agent-badge">Agent</span>
+        </button>
+        <button class="nav-item" id="nav-interview" onclick="navigateTo('interview')">
+          <span class="nav-icon">🎤</span>
+          <span>Mock Interview</span>
+          <span class="agent-badge">Agent</span>
+        </button>
+        <button class="nav-item" id="nav-dsa" onclick="navigateTo('dsa')">
+          <span class="nav-icon">🧩</span>
+          <span>DSA Quiz</span>
+          <span class="agent-badge">Agent</span>
+        </button>
+        <button class="nav-item" id="nav-skillgap" onclick="navigateTo('skillgap')">
+          <span class="nav-icon">📊</span>
+          <span>Skill Gap Analyzer</span>
+          <span class="agent-badge">Agent</span>
+        </button>
+      </nav>
 
-    <!-- ── Mock Interview ── -->
-    <section id="view-interview" class="view">
-      <div id="interview-root"></div>
-    </section>
+      <div class="sidebar-footer">
+        <button class="key-btn" onclick="resetApiKey()" title="Change API Key">🔑 Change API Key</button>
+      </div>
+    </aside>
 
-    <!-- ── DSA Quiz ── -->
-    <section id="view-dsa" class="view">
-      <div id="dsa-root"></div>
-    </section>
+    <!-- Mobile top bar -->
+    <div class="mobile-topbar">
+      <button class="hamburger" id="hamburger-btn" onclick="toggleSidebar()">☰</button>
+      <span class="brand-title">PlacementPrep AI</span>
+    </div>
 
-    <!-- ── Skill Gap Analyzer ── -->
-    <section id="view-skillgap" class="view">
-      <div id="skillgap-root"></div>
-    </section>
+    <!-- Main Content -->
+    <main class="main-content">
 
-  </main>
-</div>
+      <!-- ── Home / Dashboard ── -->
+      <section id="view-home" class="view active">
+        <div class="page-header">
+          <h1>Welcome, Future Engineer! 👋</h1>
+          <p class="page-sub">Your AI-powered placement coaching suite. Choose an agent below to get started.</p>
+        </div>
+        <div class="agent-grid">
+          <div class="agent-card" onclick="navigateTo('resume')">
+            <div class="agent-card-icon">📄</div>
+            <h3>Resume Review Agent</h3>
+            <p>Get ATS score, recruiter feedback, and actionable improvement tips on your resume.</p>
+            <div class="card-tag">AI Analysis</div>
+          </div>
+          <div class="agent-card" onclick="navigateTo('interview')">
+            <div class="agent-card-icon">🎤</div>
+            <h3>Mock Interview Agent</h3>
+            <p>Practice HR & technical interview questions with real-time AI evaluation and end-session report.</p>
+            <div class="card-tag">Conversational AI</div>
+          </div>
+          <div class="agent-card" onclick="navigateTo('dsa')">
+            <div class="agent-card-icon">🧩</div>
+            <h3>DSA Quiz Agent</h3>
+            <p>Topic-wise data structures & algorithms MCQs with explanations and live score tracking.</p>
+            <div class="card-tag">Adaptive Quiz</div>
+          </div>
+          <div class="agent-card" onclick="navigateTo('skillgap')">
+            <div class="agent-card-icon">📊</div>
+            <h3>Skill Gap Analyzer</h3>
+            <p>Enter your target company & role to get a personalized skill gap report and 3-month roadmap.</p>
+            <div class="card-tag">Roadmap Gen</div>
+          </div>
+        </div>
 
-<!-- Scripts -->
-<script src="agents/resume.js"></script>
-<script src="agents/interview.js"></script>
-<script src="agents/dsa.js"></script>
-<script src="agents/skillgap.js"></script>
-<script src="app.js"></script>
+        <div class="info-banner">
+          <div class="info-icon">ℹ️</div>
+          <div>
+            <strong>How it works:</strong> Each card opens a specialist AI agent powered by Google Gemini.
+            All agents share context via an <strong>Orchestrator Agent</strong> that routes your requests intelligently.
+          </div>
+        </div>
+      </section>
+
+      <!-- ── Resume Review ── -->
+      <section id="view-resume" class="view">
+        <div id="resume-root"></div>
+      </section>
+
+      <!-- ── Mock Interview ── -->
+      <section id="view-interview" class="view">
+        <div id="interview-root"></div>
+      </section>
+
+      <!-- ── DSA Quiz ── -->
+      <section id="view-dsa" class="view">
+        <div id="dsa-root"></div>
+      </section>
+
+      <!-- ── Skill Gap Analyzer ── -->
+      <section id="view-skillgap" class="view">
+        <div id="skillgap-root"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- Scripts -->
+  <script src="agents/resume.js"></script>
+  <script src="agents/interview.js"></script>
+  <script src="agents/dsa.js"></script>
+  <script src="agents/skillgap.js"></script>
+  <script src="app.js"></script>
 </body>
+
 </html>
